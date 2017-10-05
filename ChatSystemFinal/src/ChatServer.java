@@ -65,7 +65,7 @@ public class ChatServer {
                 while (true) {
                     out.println("JOIN");
                     name = in.readLine();
-                    if (name == null || userNameRestrictions()) {
+                    if (name == null || userNameRestrictions() || name.length()>12) {
                         c.J_ER(2);
                         continue JoinLoop;
                     }else {

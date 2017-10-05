@@ -22,3 +22,9 @@ Error Messages:
     -406: Not acceptable input for username- Username may not contain [$&+,:;=?@#|'<>.^*()%!]
     
     -400: Duplicate username- Someone is already using your username, enter a new one
+
+
+Features Not Working/Implemented
+
+    -IMAV sends heartbeat every 60 seconds even if a message from that user was sent in the last 60 seconds
+    -List does not update all users in the current chat program.

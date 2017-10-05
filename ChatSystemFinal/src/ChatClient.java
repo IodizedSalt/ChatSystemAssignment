@@ -4,22 +4,20 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
-import java.sql.Time;
-import java.time.LocalTime;
+
 import java.util.*;
+import java.util.Timer;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.*;
-import javax.swing.Timer;
 
 public class ChatClient {
     private static HashSet<String> users = new HashSet<String>();
     BufferedReader in;
     PrintWriter out;
-    JFrame frame = new JFrame("Better than Facebook");
+    JFrame frame = new JFrame("!Better than Facebook");
     JTextField textField = new JTextField(40);
     JTextArea messageArea = new JTextArea(8, 40);
     JTextArea activeClients = new JTextArea(1, 20);
@@ -28,7 +26,6 @@ public class ChatClient {
     JLabel userNameLabel = new JLabel("");
     JPanel panel = new JPanel();
     private final int PORT = 4545;
-    //private final int PORT =12456;
     String serverAddress;
     public ChatClient() {
 
@@ -36,20 +33,18 @@ public class ChatClient {
         textField.setEditable(false);
         messageArea.setEditable(false);
         activeClients.setEditable(false);
-        frame.getContentPane().add(textField, "North");
         textField.setText("Enter text here");
 
-
+        frame.getContentPane().add(textField, "North");
         frame.getContentPane().add(new JScrollPane(messageArea), "Center");
         frame.getContentPane().add(new JScrollPane(activeClients), "West");
         panel.add(userNameLabel, BorderLayout.NORTH);
         panel.add(disconnectBtn, BorderLayout.CENTER);
         frame.getContentPane().add(panel, "East");
-        //frame.pack();
         frame.setSize(700, 500);
 
-        // Add Listeners
-        textField.addMouseListener(new MouseAdapter() {
+        //Listeners
+        textField.addMouseListener(new MouseAdapter() {  //REMOVES TEXTFIELD TEXT ON CLICK
             @Override
             public void mouseClicked(MouseEvent e) {
                 if(textField.getText().equals("Enter text here"))
@@ -58,18 +53,18 @@ public class ChatClient {
                 }
             }
         });
-        disconnectBtn.addActionListener(new ActionListener() {
+        disconnectBtn.addActionListener(new ActionListener() { //HANDLES DISCONNECT FUNCTION
             @Override
             public void actionPerformed(ActionEvent eventDis) {
                 QUIT();
             }
         });
-        textField.addActionListener(new ActionListener() {
+        textField.addActionListener(new ActionListener() {  //HANDLES ENTER KEY PRESSED FUNCTION
             public void actionPerformed(ActionEvent e) {
                 out.println(textField.getText());
                 textField.setText("");
             }
-        }); //enter press
+        });
     }
 
     private String getServerAddress() {
@@ -78,6 +73,9 @@ public class ChatClient {
                 "Enter IP Address of the Server:",
                 "IPCONFIG",
                 JOptionPane.QUESTION_MESSAGE);
+        if(serverAddress == null){
+            QUIT();
+        }
 
         return serverAddress;
     }
@@ -95,7 +93,7 @@ public class ChatClient {
             case 2:
                 JOptionPane.showMessageDialog(
                         frame,
-                        "Error 406 \n" + "406 - Not Acceptable +\n " + "Max 12 chars long + \n" + "Letters, digits , '-' '_' allowed",
+                        "Error 406 \n" + "406 - Not Acceptable \n " + "Max 12 chars long  \n" + "Letters, digits , '-' '_' allowed",
                         "Error 406",
                         JOptionPane.ERROR_MESSAGE);
                 System.out.println("Error 406");
@@ -108,6 +106,9 @@ public class ChatClient {
                 "Enter a userName",
                 "Username selection",
                 JOptionPane.PLAIN_MESSAGE);
+        if(newUser == null){
+            QUIT();
+        }
         return newUser;
     }
 
@@ -116,22 +117,23 @@ public class ChatClient {
         frame.dispose();
         frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
     }
-    private void IMAV(){
-        JOptionPane.showMessageDialog(
-                frame,
-                "Timeout Error, please Reconnect",
-                "Timeout",
-                JOptionPane.ERROR_MESSAGE);
-        QUIT();
+    private void IMAV() {
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            public void run() {
+                messageArea.append(userNameLabel.getText() + "is still alive");
+            }
+        },60000, 60000);
+
+
 
     }
 
     private void run() throws IOException {
+
         String serverAddress = String.valueOf(getServerAddress());
         Socket socket = new Socket(serverAddress, PORT);
-        socket.setSoTimeout(60000);
-        in = new BufferedReader(new InputStreamReader(
-                socket.getInputStream()));
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
         try {
             while (true) {
@@ -141,7 +143,8 @@ public class ChatClient {
 
                 } else if (line.startsWith("J_OK")) {
                     messageArea.append(newUser + " from " + serverAddress + ":" + PORT + " has connected" + "\n");
-                    userNameLabel.setText("User: " + newUser + "\n");
+                    IMAV();
+                    userNameLabel.setText("User: " + newUser+ " " );
                     textField.setEditable(true);
                 } else if (line.startsWith("DATA")) {
                     messageArea.append(line.substring(4) + "\n");
@@ -150,8 +153,6 @@ public class ChatClient {
                     activeClients.setText(users.toString().replace(",", "").replace("[", "").replace("]", "\n"));
                 }
             }
-        } catch (SocketTimeoutException ste) { //TODO REMOVE
-            IMAV();
         } finally {
             in.close();
             out.close();
