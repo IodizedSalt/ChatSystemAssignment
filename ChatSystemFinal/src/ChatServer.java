@@ -5,6 +5,8 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ChatServer {
     private static final int PORT = 4545;
@@ -41,34 +43,44 @@ public class ChatServer {
             this.socket = socket;
         }
 
+        private boolean userNameRestrictions(){
+            Pattern p = Pattern.compile("[$&+,:;=?@#|'<>.^*()%!]");
 
+            Matcher m = p.matcher(name);
+            boolean b = m.find();
+            System.out.println(b);
+            if(b==true){
+                return true;
+            }else {
+                return false;
+
+            }
+        }
         public void run() {
             ChatClient c = new ChatClient();
             try {
-
-                // Create character streams for the socket.
-                in = new BufferedReader(new InputStreamReader(
-                        socket.getInputStream()));
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 out = new PrintWriter(socket.getOutputStream(), true);
-
+                JoinLoop:
                 while (true) {
                     out.println("JOIN");
                     name = in.readLine();
-                    out.println("LIST" + name);
-
-                    if (name == null) {
+                    if (name == null || userNameRestrictions()) {
                         c.J_ER(2);
-                    }
+                        continue JoinLoop;
+                    }else {
                     synchronized (names) {
-                        if (!names.contains(name)) { //TODO IMPLEMENT USERNAME RESTRICTIONS
+                        if (names.contains(name)) {
+                            c.J_ER(1);
+                            continue JoinLoop;
+                        } else {
                             names.add(name);
                             out.println("J_OK");
                             writers.add(out);
-                            //out.println("LIST");
+                            out.println("LIST" + name);
                             break;
-                        }else{
-                            c.J_ER(1);
                         }
+                    }
                     }
                 }
 
@@ -81,6 +93,7 @@ public class ChatServer {
                     }
                     for (PrintWriter writer : writers) {
                         writer.println("DATA " + name + ": " + input);
+
                     }
                 }
             } catch (IOException e) {

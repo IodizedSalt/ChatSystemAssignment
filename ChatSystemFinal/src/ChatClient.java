@@ -8,10 +8,12 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.sql.Time;
+import java.time.LocalTime;
+import java.util.*;
 
 import javax.swing.*;
+import javax.swing.Timer;
 
 public class ChatClient {
     private static HashSet<String> users = new HashSet<String>();
@@ -25,7 +27,6 @@ public class ChatClient {
     JButton disconnectBtn = new JButton("Disconnect");
     JLabel userNameLabel = new JLabel("");
     JPanel panel = new JPanel();
-    private int jer = 0;
     private final int PORT = 4545;
     //private final int PORT =12456;
     String serverAddress;
@@ -81,7 +82,6 @@ public class ChatClient {
         return serverAddress;
     }
 
-    //TODO MAKE J_ER HERE
     public void J_ER(int jer){
         switch (jer) {
             case 1:
@@ -90,25 +90,18 @@ public class ChatClient {
                         "Error 400 \n" + "400 - Duplicate username detected. Please try again",
                         "Error 400",
                         JOptionPane.ERROR_MESSAGE);
+                System.out.println("Error 400");
+                break;
             case 2:
                 JOptionPane.showMessageDialog(
                         frame,
                         "Error 406 \n" + "406 - Not Acceptable +\n " + "Max 12 chars long + \n" + "Letters, digits , '-' '_' allowed",
                         "Error 406",
                         JOptionPane.ERROR_MESSAGE);
-            case 3: //TODO MAKE A DIFFERENT ERROR HERE
-                JOptionPane.showMessageDialog(
-                        frame,
-                        "Error \n" + "400 - Duplicate username detected. Please try again",
-                        "Error 400",
-                        JOptionPane.ERROR_MESSAGE);
+                System.out.println("Error 406");
+                break;
         }
-
-
-
     }
-
-
     private String JOIN() {
         newUser = JOptionPane.showInputDialog(
                 frame,
@@ -119,24 +112,24 @@ public class ChatClient {
     }
 
     private void QUIT(){
+        messageArea.append(newUser + " from " + serverAddress + ":" + PORT + " has disconnected" + "\n");
         frame.dispose();
         frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
     }
     private void IMAV(){
-//        JOptionPane.showMessageDialog(
-//                frame,
-//                "Timeout Error, please Reconnect",
-//                "Timeout",
-//                JOptionPane.ERROR_MESSAGE);
-//        QUIT();
+        JOptionPane.showMessageDialog(
+                frame,
+                "Timeout Error, please Reconnect",
+                "Timeout",
+                JOptionPane.ERROR_MESSAGE);
+        QUIT();
 
     }
 
     private void run() throws IOException {
         String serverAddress = String.valueOf(getServerAddress());
         Socket socket = new Socket(serverAddress, PORT);
-        //socket.setSoTimeout(10000);
-        //socket.setKeepAlive(true);
+        socket.setSoTimeout(60000);
         in = new BufferedReader(new InputStreamReader(
                 socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
@@ -145,11 +138,10 @@ public class ChatClient {
                 String line = in.readLine();
                 if (line.startsWith("JOIN")) {
                     out.println(JOIN());
-                    userNameLabel.setText("User: " + newUser + "\n");
-                    //messageArea.append("JOIN " + newUser + " " + serverAddress + ":" + PORT + "\n");
-                    //activeClients.append();
+
                 } else if (line.startsWith("J_OK")) {
                     messageArea.append(newUser + " from " + serverAddress + ":" + PORT + " has connected" + "\n");
+                    userNameLabel.setText("User: " + newUser + "\n");
                     textField.setEditable(true);
                 } else if (line.startsWith("DATA")) {
                     messageArea.append(line.substring(4) + "\n");
@@ -158,7 +150,7 @@ public class ChatClient {
                     activeClients.setText(users.toString().replace(",", "").replace("[", "").replace("]", "\n"));
                 }
             }
-        } catch (SocketTimeoutException ste) {
+        } catch (SocketTimeoutException ste) { //TODO REMOVE
             IMAV();
         } finally {
             in.close();
