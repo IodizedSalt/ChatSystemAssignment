@@ -27,6 +27,8 @@ public class ChatClient {
     JPanel panel = new JPanel();
     private final int PORT = 4545;
     String serverAddress;
+    ChatServer cs = new ChatServer();
+
     public ChatClient() {
 
         // Layout GUI
@@ -67,7 +69,7 @@ public class ChatClient {
         });
     }
 
-    private String getServerAddress() {
+    private String getServerAddress() { //Throws dialog for user to enter IPAddress
         serverAddress = JOptionPane.showInputDialog(
                 frame,
                 "Enter IP Address of the Server:",
@@ -99,13 +101,14 @@ public class ChatClient {
                 System.out.println("Error 406");
                 break;
         }
-    }
+    } //J_ER handlers
     private String JOIN() {
         newUser = JOptionPane.showInputDialog(
                 frame,
                 "Enter a userName",
                 "Username selection",
                 JOptionPane.PLAIN_MESSAGE);
+
         if(newUser == null){
             QUIT();
         }
@@ -113,7 +116,8 @@ public class ChatClient {
     }
 
     private void QUIT(){
-        messageArea.append(newUser + " from " + serverAddress + ":" + PORT + " has disconnected" + "\n");
+        String QUITmsg = (" from " + serverAddress + ":" + PORT + " has disconnected");
+        out.println(QUITmsg);
         frame.dispose();
         frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
     }
@@ -121,7 +125,8 @@ public class ChatClient {
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             public void run() {
-                messageArea.append(userNameLabel.getText() + "is still alive");
+                String IMAVmsg = "User: " + newUser + " is still alive";
+                out.println(IMAVmsg);
             }
         },60000, 60000);
 
@@ -130,7 +135,6 @@ public class ChatClient {
     }
 
     private void run() throws IOException {
-
         String serverAddress = String.valueOf(getServerAddress());
         Socket socket = new Socket(serverAddress, PORT);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -148,9 +152,12 @@ public class ChatClient {
                     textField.setEditable(true);
                 } else if (line.startsWith("DATA")) {
                     messageArea.append(line.substring(4) + "\n");
-                } else if (line.startsWith("LIST")) { //TODO LIST
-                    users.add(line.substring(4));
-                    activeClients.setText(users.toString().replace(",", "").replace("[", "").replace("]", "\n"));
+                } else if (line.startsWith("LIST")) { //TODO LIST~ fix  the getter method
+                    //cs.getNames();
+//                    users.add(line.substring(4));
+//                    activeClients.setText(users.toString().replace(",", "").replace("[", "").replace("]", "\n"));
+                    activeClients.setText(cs.getNames().toString());
+
                 }
             }
         } finally {
