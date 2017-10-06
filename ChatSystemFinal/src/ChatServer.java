@@ -14,10 +14,6 @@ public class ChatServer {
     private static HashSet<String> names = new HashSet<String>();
     private static HashSet<PrintWriter> writers = new HashSet<PrintWriter>();
 
-    public static HashSet<String> getNames() {
-        return names;
-    }
-
     public static void main(String[] args) throws Exception {
         System.out.println("Server online");
         ServerSocket listener = new ServerSocket(PORT);

@@ -154,9 +154,10 @@ public class ChatClient {
                     messageArea.append(line.substring(4) + "\n");
                 } else if (line.startsWith("LIST")) { //TODO LIST~ fix  the getter method
                     //cs.getNames();
-//                    users.add(line.substring(4));
-//                    activeClients.setText(users.toString().replace(",", "").replace("[", "").replace("]", "\n"));
-                    activeClients.setText(cs.getNames().toString());
+                    users.add(line.substring(4));
+                    activeClients.setText(users.toString().replace(",", "").replace("[", "").replace("]", "\n"));
+//                    activeClients.setText(cs.getNames().toString());
+
 
                 }
             }
